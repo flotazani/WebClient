@@ -2,20 +2,32 @@ import Fluent
 import FluentPostgresDriver
 import Vapor
 
+public struct PostgresDefaults {
+    public static let hostname = "localhost"
+    public static let username = "andreikonovalov"
+    public static let port = 5432
+    public static let databasename = "webproject"
+    public static let password = ""
+}
+
 // configures your application
 public func configure(_ app: Application) throws {
     // uncomment to serve files from /Public folder
     // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+    
 
     app.databases.use(.postgres(
-        hostname: Environment.get("DATABASE_HOST") ?? "localhost",
-        port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? PostgresConfiguration.ianaPortNumber,
-        username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
-        password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-        database: Environment.get("DATABASE_NAME") ?? "vapor_database"
-    ), as: .psql)
+        hostname: PostgresDefaults.hostname,
+        port: PostgresDefaults.port,
+        username: PostgresDefaults.username,
+        password: PostgresDefaults.password,
+        database: PostgresDefaults.databasename),
+                      as: .psql)
 
-    app.migrations.add(CreateTodo())
+    app.migrations.add(CreateUsers())
+    app.migrations.add(CreateTokens())
+
+    try app.autoMigrate().wait()
 
     // register routes
     try routes(app)
