@@ -6,7 +6,7 @@ public struct PostgresDefaults {
     public static let hostname = "localhost"
     public static let username = "andreikonovalov"
     public static let port = 5432
-    public static let databasename = "webproject"
+    public static let databasename = "myweb"
     public static let password = ""
 }
 

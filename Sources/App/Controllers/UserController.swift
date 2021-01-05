@@ -34,13 +34,15 @@ struct UserController: RouteCollection {
 
         let tokenProtected = usersRoute.grouped(Token.authenticator())
         tokenProtected.get("me", use: getMyOwnUser)
+        tokenProtected.post("logout", use: logout)
+
 
         let passwordProtected = usersRoute.grouped(User.authenticator())
         passwordProtected.post("login", use: login)
     }
 
     fileprivate func create(req: Request) throws -> EventLoopFuture<NewSession> {
-        try UserSignup.validate(req)
+        try UserSignup.validate(content: req)
         let userSignup = try req.content.decode(UserSignup.self)
         let user = try User.create(from: userSignup)
         var token: Token!
@@ -71,8 +73,23 @@ struct UserController: RouteCollection {
         }
     }
 
+
+    fileprivate func logout(req: Request) throws -> EventLoopFuture<HTTPResponseStatus> {
+        let user = try req.auth.require(User.self)
+        return deleteAllTokensForUser(try user.asPublic().id, req: req)
+    }
+
+
     func getMyOwnUser(req: Request) throws -> User.Public {
         try req.auth.require(User.self).asPublic()
+    }
+
+
+    private func deleteAllTokensForUser(_ userID: UUID, req: Request) -> EventLoopFuture<HTTPResponseStatus>{
+        return Token.query(on: req.db)
+            .filter(\Token.$user.$id, .equal, userID)
+            .delete()
+            .transform(to: HTTPResponseStatus.ok)
     }
 
     private func checkIfUserExists(_ username: String, req: Request) -> EventLoopFuture<Bool> {
