@@ -55,13 +55,13 @@ struct NoteController: RouteCollection {
 
     fileprivate func update(req: Request) throws -> EventLoopFuture<HTTPResponseStatus> {
         let _ = try req.auth.require(User.self)
-        let schedule = try req.content.decode(Note.self)
-        return Note.find(schedule.id, on: req.db)
+        let note = try req.content.decode(Note.self)
+        return Note.find(note.id, on: req.db)
             .flatMapThrowing { row -> EventLoopFuture<Void> in
                 guard let row = row else {
                     throw Abort(.notFound)
                 }
-                return row.update(on: req.db)
+                return note.update(on: req.db)
             }.transform(to: .ok)
     }
 }
