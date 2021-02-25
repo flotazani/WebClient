@@ -26,7 +26,7 @@ public func configure(_ app: Application) throws {
 
     app.migrations.add(CreateUsers())
     app.migrations.add(CreateTokens())
-    app.migrations.add(CreateSchedule())
+    app.migrations.add(CreateNote())
 
     try app.autoMigrate().wait()
 
